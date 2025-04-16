@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useHistory } from 'react-router-dom';
 import { getScrollbarWidth } from '../../helper';
@@ -13,6 +13,8 @@ const Modal = ({
   onKeyDown,
 }) => {
   const history = useHistory();
+  const modalRef = useRef(null);
+
   // const isMobile = useIsMobile();
   // useLayoutEffect(() => {
   //   if (open) {
@@ -47,11 +49,40 @@ const Modal = ({
 
   const handleKeyDown = (e) => {
     if (!noEscapeClose && e.key === 'Escape') onClose();
+
+    // Focus trap.
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusable = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+
+      const firstElement = focusable[0];
+      const lastElement = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+
     if (onKeyDown) onKeyDown(e);
   };
   useEffect(() => {
     if (open) {
       document.addEventListener('keydown', handleKeyDown);
+
+      const focusable = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      focusable[0].focus();
+
       return () => {
         document.removeEventListener('keydown', handleKeyDown);
       };
@@ -95,7 +126,9 @@ const Modal = ({
   return ReactDOM.createPortal(
     <div className="modal" onClick={handleBgClick}>
       <div className="modal-container">
-        <div className="modal-modal">{children}</div>
+        <div className="modal-modal" ref={modalRef} tabIndex="-1">
+          {children}
+        </div>
         <div className="modal-bg"></div>
       </div>
     </div>,
