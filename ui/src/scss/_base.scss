@@ -241,7 +241,6 @@ html.is-system-font {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    outline: none;
     font-family: inherit;
     font-size: inherit;
     line-height: inherit;
@@ -250,6 +249,11 @@ html.is-system-font {
     &:after,
     &:before {
         box-sizing: inherit;
+    }
+    &:focus-visible {
+        outline: 2px solid var(--color-brand);
+        outline-offset: -2px;
+        transition: outline-offset 0;
     }
 }
 
@@ -584,7 +588,10 @@ $inputs: "input[type='text'], \
     &:hover {
         border-color: var(--color-input-border-hover);
     }
-    &:focus,
+    :focus-visible {
+        outline: 2px solid var(--color-input-border-focus);
+        background-color: var(--color-input-active);
+    }
     &.is-active {
         border-color: var(--color-input-border-focus);
         background-color: var(--color-input-active);
@@ -1044,7 +1051,6 @@ html.no-wrap {
         --disabled-inner: var(--color-checkbox-disabled-inner);
         appearance: none;
         height: 21px;
-        outline: none;
         display: inline-block;
         vertical-align: top;
         position: relative;
