@@ -22,6 +22,7 @@ import { getFocusableElements } from '../helper';
 const Sidebar = ({ isMobile = false }) => {
   const dispatch = useDispatch();
 
+  const previouslyFocusedElement = useRef(null);
   const user = useSelector((state) => state.main.user);
   const loggedIn = user !== null;
 
@@ -46,6 +47,11 @@ const Sidebar = ({ isMobile = false }) => {
 
     const node = ref.current;
     if (!node) return;
+
+    // Save the previously focused element if it's not inside the sidebar.
+    if (document.activeElement && !node.contains(document.activeElement)) {
+      previouslyFocusedElement.current = document.activeElement;
+    }
 
     const focusable = getFocusableElements(node);
     if (focusable.length === 0) return;
@@ -82,6 +88,15 @@ const Sidebar = ({ isMobile = false }) => {
     return () => {
       node.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keydown', handleKeyDown);
+
+      // Restore focus when sidebar closes.
+      if (
+        previouslyFocusedElement.current &&
+        typeof previouslyFocusedElement.current.focus === 'function'
+      ) {
+        previouslyFocusedElement.current.focus();
+        previouslyFocusedElement.current = null;
+      }
     };
   }, [open, dispatch]);
 
