@@ -184,13 +184,14 @@ const Sidebar = ({ isMobile = false }) => {
         (open ? ' is-open' : '') +
         (visible ? ' is-visible' : '')
       }
+      aria-label="sidebar navigation"
     >
       <div className="sidebar-top-m">
         <h2>{import.meta.env.VITE_SITENAME}</h2>
         <ButtonClose onClick={() => dispatch(toggleSidebarOpen())} />
       </div>
       <div className="sidebar-content">
-        <nav className="sidebar-list">
+        <nav className="sidebar-list" aria-label="sidebar navigation">
           {isMobile && (
             <div className="sidebar-item is-search">
               <Search />
@@ -408,6 +409,7 @@ const Sidebar = ({ isMobile = false }) => {
                 target="_blank"
                 rel="noreferrer"
                 className="button social-link"
+                aria-label="Facebook"
               >
                 <svg viewBox="0 0 24 24">
                   <path
@@ -423,6 +425,7 @@ const Sidebar = ({ isMobile = false }) => {
                 target="_blank"
                 rel="noreferrer"
                 className="button social-link"
+                aria-label="Twitter"
               >
                 <SVGTwitter />
               </a>
@@ -433,6 +436,7 @@ const Sidebar = ({ isMobile = false }) => {
                 target="_blank"
                 rel="noreferrer"
                 className="button social-link"
+                aria-label="Instagram"
               >
                 <SVGInstagram />
               </a>
@@ -443,6 +447,7 @@ const Sidebar = ({ isMobile = false }) => {
                 target="_blank"
                 rel="noreferrer"
                 className="button social-link"
+                aria-label="Discord"
               >
                 <SVGDiscord />
               </a>
@@ -453,6 +458,7 @@ const Sidebar = ({ isMobile = false }) => {
                 target="_blank"
                 rel="noreferrer"
                 className="button social-link"
+                aria-label="GitHub"
               >
                 <SVGGithub />
               </a>
@@ -463,6 +469,7 @@ const Sidebar = ({ isMobile = false }) => {
                 target="_blank"
                 rel="noreferrer"
                 className="button social-link"
+                aria-label="Substack"
               >
                 <SVGSubstack />
               </a>
