@@ -70,6 +70,7 @@ export interface MainState {
   feedLayout: string;
   allCommunitiesSort: CommunitiesSort;
   allCommunitiesSearchQuery: string;
+  lastFocusedBeforeModal: Element | null;
 }
 
 const initialNotifications = {
@@ -123,12 +124,17 @@ const initialState: MainState = {
   feedLayout: (getDevicePreference('feed_layout') ?? 'card') as string,
   allCommunitiesSort: 'size',
   allCommunitiesSearchQuery: '',
+  lastFocusedBeforeModal: null,
 };
 
 export default function mainReducer(
   state: MainState = initialState,
   action: UnknownAction
 ): MainState {
+  if (action.type.includes('ModalOpened')) {
+    state.lastFocusedBeforeModal = document.activeElement;
+  }
+
   switch (action.type) {
     case 'main/initialValuesAdded': {
       const payload = action.payload as InitialValues;

@@ -3,6 +3,7 @@ import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useHistory } from 'react-router-dom';
 import { getScrollbarWidth } from '../../helper';
+import { useSelector } from 'react-redux';
 
 const Modal = ({
   open,
@@ -14,7 +15,7 @@ const Modal = ({
 }) => {
   const history = useHistory();
   const modalRef = useRef(null);
-
+  const previouslyFocusedElement = useRef(null);
   // const isMobile = useIsMobile();
   // useLayoutEffect(() => {
   //   if (open) {
@@ -29,6 +30,29 @@ const Modal = ({
   //     }
   //   }
   // }, [open])
+
+  // Get the focused element before opening the modal.
+  const lastFocusedBeforeModal = useSelector((state) => state.main.lastFocusedBeforeModal);
+  useEffect(() => {
+    if (open) {
+      previouslyFocusedElement.current = document.activeElement;
+      if (modalRef.current && modalRef.current.contains(previouslyFocusedElement.current)) {
+        previouslyFocusedElement.current = lastFocusedBeforeModal;
+      }
+    }
+  }, [open, lastFocusedBeforeModal]);
+
+  // Restore focus when closed.
+  useEffect(() => {
+    return () => {
+      if (
+        previouslyFocusedElement.current &&
+        typeof previouslyFocusedElement.current.focus === 'function'
+      ) {
+        previouslyFocusedElement.current.focus();
+      }
+    };
+  }, [open]);
 
   useEffect(() => {
     if (open) {
