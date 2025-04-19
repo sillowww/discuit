@@ -483,3 +483,18 @@ export function copyToClipboard(text: string): boolean {
   }
   return false;
 }
+
+/**
+ * Get all focusable elements within a container.
+ *
+ * @param container The container element to search within.
+ * @returns An array of focusable elements.
+ */
+export function getFocusableElements(container: Element): Element[] {
+  if (!container) return [];
+  return Array.from(
+    container.querySelectorAll(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter((el) => !el.hasAttribute('disabled') && !el.getAttribute('aria-hidden'));
+}

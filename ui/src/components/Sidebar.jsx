@@ -17,6 +17,7 @@ import WelcomeBanner from '../views/WelcomeBanner';
 import { ButtonClose } from './Button';
 import CommunityProPic from './CommunityProPic';
 import Search from './Navbar/Search';
+import { getFocusableElements } from '../helper';
 
 const Sidebar = ({ isMobile = false }) => {
   const dispatch = useDispatch();
@@ -38,6 +39,51 @@ const Sidebar = ({ isMobile = false }) => {
   const handleClose = () => {
     if (open) dispatch(toggleSidebarOpen());
   };
+
+  // Focus trap & Escape key
+  useEffect(() => {
+    if (!open) return;
+
+    const node = ref.current;
+    if (!node) return;
+
+    const focusable = getFocusableElements(node);
+    if (focusable.length === 0) return;
+
+    if (!node.contains(document.activeElement)) {
+      focusable[0].focus();
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') {
+        dispatch(toggleSidebarOpen());
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          last.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === last) {
+          first.focus();
+          e.preventDefault();
+        }
+      }
+    }
+
+    node.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      node.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, dispatch]);
 
   const location = useLocation();
   const homePageLink = (to) => {
