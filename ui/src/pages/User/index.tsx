@@ -5,6 +5,7 @@ import { Link, useHistory, useLocation, useParams } from 'react-router-dom';
 import { ButtonMore } from '../../components/Button';
 import Dropdown from '../../components/Dropdown';
 import Feed from '../../components/Feed';
+import ImageEditModal from '../../components/ImageEditModal';
 import MarkdownBody from '../../components/MarkdownBody';
 import MiniFooter from '../../components/MiniFooter';
 import PageLoading from '../../components/PageLoading';
@@ -14,11 +15,19 @@ import SelectBar from '../../components/SelectBar';
 import ShowMoreBox from '../../components/ShowMoreBox';
 import Sidebar from '../../components/Sidebar';
 import UserProPic from '../../components/UserProPic';
-import { APIError, dateString1, mfetch, mfetchjson, stringCount } from '../../helper';
+import {
+  APIError,
+  dateString1,
+  mfetch,
+  mfetchjson,
+  selectImageCopyURL,
+  stringCount,
+} from '../../helper';
 import { useFetchUsersLists, useMuteUser } from '../../hooks';
+import { useImageEdit } from '../../hooks/useImageEdit';
 import type { Comment, Post, User } from '../../serverTypes';
 import { FeedItem } from '../../slices/feedsSlice';
-import { snackAlertError } from '../../slices/mainSlice';
+import { snackAlert, snackAlertError, userLoggedIn } from '../../slices/mainSlice';
 import { selectUser, userAdded } from '../../slices/usersSlice';
 import { RootState } from '../../store';
 import NotFound from '../NotFound';
@@ -53,6 +62,29 @@ const User = () => {
   const viewer = useSelector<RootState>((state) => state.main.user) as User | null;
   const viewerAdmin = viewer ? viewer.isAdmin : false;
   const loggedIn = viewer !== null;
+
+  const [profilePicModalOpen, setProfilePicModalOpen] = useState(false);
+
+  const {
+    isUploading: isUploadingPic,
+    isDeleting: isDeletingPic,
+    handleUpload: handleUploadProfilePic,
+    handleDelete: handleDeleteProfilePic,
+    handleSaveAltText,
+  } = useImageEdit(`/api/users/${username}/pro_pic`, (res) => {
+    dispatch(userLoggedIn(res));
+  });
+
+  const handleSaveProfilePicAlt = (altText: string) => {
+    if (!user) return dispatch(snackAlert('No user to update.', null));
+    if (!user.proPic) return dispatch(snackAlert('No profile picture to update.', null));
+    handleSaveAltText(altText, user.proPic.id).then((success) => {
+      if (success) {
+        if (user.proPic) user.proPic.altText = altText;
+        setProfilePicModalOpen(false);
+      }
+    });
+  };
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -476,7 +508,13 @@ const User = () => {
         <header className="user-card card card-padding">
           <div className="user-card-top">
             <div className="user-card-top-left">
-              <UserProPic username={username} proPic={user.proPic} size="large" />
+              <UserProPic
+                username={username}
+                proPic={user.proPic}
+                size="large"
+                editable={user.id === viewer?.id || (viewer?.isAdmin && !user.deleted)}
+                onEdit={() => setProfilePicModalOpen(true)}
+              />
               <h1
                 className={
                   'user-card-username' +
@@ -510,15 +548,21 @@ const User = () => {
               Account deleted on {dateString1(user.deletedAt as string)}
             </div>
           )}
-          {loggedIn && !user.deleted && (
+          {loggedIn && (
             <div className="user-card-buttons">
               {viewer.id !== user.id && (
-                <button onClick={toggleMute}>{isMuted ? 'Unmute user' : 'Mute user'}</button>
+                <button onClick={toggleMute} disabled={user.deleted}>
+                  {isMuted ? 'Unmute user' : 'Mute user'}
+                </button>
               )}
               {viewerAdmin && (
                 <>
                   {viewer.id !== user.id && <BanUserButton user={user} />}
-                  <button className="button-green" onClick={handleGiveSupporterBadge}>
+                  <button
+                    className="button-green"
+                    onClick={handleGiveSupporterBadge}
+                    disabled={user.deleted}
+                  >
                     {hasSupporterBadge ? 'Remove supporter badge' : 'Give supporter badge'}
                   </button>
                   <Dropdown target={<ButtonMore />}>
@@ -596,6 +640,19 @@ const User = () => {
         </div> */}
         <MiniFooter />
       </aside>
+
+      <ImageEditModal
+        open={profilePicModalOpen}
+        onClose={() => setProfilePicModalOpen(false)}
+        title="Edit profile picture"
+        imageUrl={user.proPic ? selectImageCopyURL('medium', user.proPic) : undefined}
+        altText={user.proPic?.altText}
+        onUpload={handleUploadProfilePic}
+        onDelete={handleDeleteProfilePic}
+        onSave={handleSaveProfilePicAlt}
+        uploading={isUploadingPic}
+        deleting={isDeletingPic}
+      />
     </div>
   );
 };
